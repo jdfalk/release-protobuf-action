@@ -140,10 +140,15 @@ runs:
 
     - name: Output summary
       run: |
-        echo "## Protocol Buffer Release Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## Protocol Buffer Release Summary" \
+          >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Proto Directory:** ${{ inputs.proto-dir }}" >> $GITHUB_STEP_SUMMARY
-        echo "**SDK Languages:** ${{ inputs.sdk-languages }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Output Directory:** ${{ inputs.output-dir }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Buf Version:** ${{ inputs.buf-version }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Proto Directory:** ${{ inputs.proto-dir }}" \
+          >> $GITHUB_STEP_SUMMARY
+        echo "**SDK Languages:** ${{ inputs.sdk-languages }}" \
+          >> $GITHUB_STEP_SUMMARY
+        echo "**Output Directory:** ${{ inputs.output-dir }}" \
+          >> $GITHUB_STEP_SUMMARY
+        echo "**Buf Version:** ${{ inputs.buf-version }}" \
+          >> $GITHUB_STEP_SUMMARY
       shell: bash
