@@ -1,5 +1,5 @@
 # file: .github/workflows/ci.yml
-# version: 1.0.0
+# version: 1.0.1
 # guid: a3b4c5d6-e7f8-9012-a678-123456789012
 
 name: CI
@@ -53,10 +53,12 @@ jobs:
               - FILE
           lint:
             use:
-              - DEFAULT
+              - STANDARD
           EOF
 
-          cat > test-project/proto/test.proto << 'EOF'
+          mkdir -p test-project/proto/test/v1
+
+          cat > test-project/proto/test/v1/test.proto << 'EOF'
           syntax = "proto3";
 
           package test.v1;
