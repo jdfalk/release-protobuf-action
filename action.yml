@@ -79,7 +79,6 @@ runs:
       uses: bufbuild/buf-setup-action@v1
       with:
         version: ${{ inputs.buf-version }}
-      shell: bash
 
     - name: Verify configuration
       shell: bash
