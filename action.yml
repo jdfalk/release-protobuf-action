@@ -1,5 +1,5 @@
 # file: action.yml
-# version: 1.0.0
+# version: 1.0.1
 # guid: 7b9e4f3a-6d2c-5e1a-8f9d-3c7e2a4b6d1f
 
 name: "Release Protocol Buffers"
@@ -79,6 +79,7 @@ runs:
       uses: bufbuild/buf-setup-action@v1
       with:
         version: ${{ inputs.buf-version }}
+        github_token: ${{ inputs.github-token }}
 
     - name: Verify configuration
       run: |
@@ -86,7 +87,8 @@ runs:
           echo "Error: buf.yaml not found at ${{ inputs.buf-config }}"
           exit 1
         fi
-        if [ ! -f "${{ inputs.buf-gen-config }}" ]; then
+
+        if [ "${{ inputs.generate-sdks }}" = "true" ] && [ ! -f "${{ inputs.buf-gen-config }}" ]; then
           echo "Error: buf.gen.yaml not found at ${{ inputs.buf-gen-config }}"
           exit 1
         fi
