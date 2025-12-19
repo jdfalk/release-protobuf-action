@@ -81,7 +81,6 @@ runs:
         version: ${{ inputs.buf-version }}
 
     - name: Verify configuration
-      shell: bash
       run: |
         if [ ! -f "${{ inputs.buf-config }}" ]; then
           echo "Error: buf.yaml not found at ${{ inputs.buf-config }}"
@@ -91,23 +90,23 @@ runs:
           echo "Error: buf.gen.yaml not found at ${{ inputs.buf-gen-config }}"
           exit 1
         fi
+      shell: bash
 
     - name: Run buf lint
       if: inputs.run-lint == 'true'
-      shell: bash
       run: |
         buf lint --config ${{ inputs.buf-config }}
+      shell: bash
 
     - name: Check breaking changes
       if: inputs.run-breaking == 'true'
-      shell: bash
       run: |
         buf breaking --against ".git#branch=${{ inputs.against-branch }}" --config ${{ inputs.buf-config }} || true
+      shell: bash
 
     - name: Generate code
       id: generate
       if: inputs.generate-sdks == 'true'
-      shell: bash
       run: |
         # Create output directory
         mkdir -p ${{ inputs.output-dir }}
@@ -118,10 +117,10 @@ runs:
         # Output results
         echo "languages=${{ inputs.sdk-languages }}" >> $GITHUB_OUTPUT
         echo "path=${{ inputs.output-dir }}" >> $GITHUB_OUTPUT
+      shell: bash
 
     - name: Create SDK tags
       if: inputs.create-tags == 'true' && github.ref_type == 'tag'
-      shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
@@ -137,9 +136,9 @@ runs:
           git push origin "$SDK_TAG"
           echo "Created tag: $SDK_TAG"
         done
+      shell: bash
 
     - name: Output summary
-      shell: bash
       run: |
         echo "## Protocol Buffer Release Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -147,3 +146,4 @@ runs:
         echo "**SDK Languages:** ${{ inputs.sdk-languages }}" >> $GITHUB_STEP_SUMMARY
         echo "**Output Directory:** ${{ inputs.output-dir }}" >> $GITHUB_STEP_SUMMARY
         echo "**Buf Version:** ${{ inputs.buf-version }}" >> $GITHUB_STEP_SUMMARY
+      shell: bash
