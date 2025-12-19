@@ -1,0 +1,150 @@
+# file: action.yml
+# version: 1.0.0
+# guid: 7b9e4f3a-6d2c-5e1a-8f9d-3c7e2a4b6d1f
+
+name: "Release Protocol Buffers"
+description: "Generate and release Protocol Buffer SDKs for multiple languages"
+author: "jdfalk"
+
+branding:
+  icon: "code"
+  color: "green"
+
+inputs:
+  buf-version:
+    description: "Buf version to use"
+    required: false
+    default: "latest"
+  proto-dir:
+    description: "Directory containing .proto files"
+    required: false
+    default: "proto"
+  buf-config:
+    description: "Path to buf.yaml"
+    required: false
+    default: "buf.yaml"
+  buf-gen-config:
+    description: "Path to buf.gen.yaml"
+    required: false
+    default: "buf.gen.yaml"
+  generate-sdks:
+    description: "Whether to generate SDKs"
+    required: false
+    default: "true"
+  sdk-languages:
+    description: "SDK languages to generate (comma-separated: go,python,typescript)"
+    required: false
+    default: "go"
+  output-dir:
+    description: "Output directory for generated code"
+    required: false
+    default: "gen"
+  run-lint:
+    description: "Run buf lint"
+    required: false
+    default: "true"
+  run-breaking:
+    description: "Check for breaking changes"
+    required: false
+    default: "true"
+  against-branch:
+    description: "Branch to check breaking changes against"
+    required: false
+    default: "main"
+  create-tags:
+    description: "Create SDK-specific tags"
+    required: false
+    default: "true"
+  tag-prefix:
+    description: "Tag prefix for SDK releases"
+    required: false
+    default: "proto"
+  github-token:
+    description: "GitHub token for tagging"
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  generated-languages:
+    description: "Languages that were generated"
+    value: ${{ steps.generate.outputs.languages }}
+  output-path:
+    description: "Path to generated code"
+    value: ${{ steps.generate.outputs.path }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Buf
+      uses: bufbuild/buf-setup-action@v1
+      with:
+        version: ${{ inputs.buf-version }}
+      shell: bash
+
+    - name: Verify configuration
+      shell: bash
+      run: |
+        if [ ! -f "${{ inputs.buf-config }}" ]; then
+          echo "Error: buf.yaml not found at ${{ inputs.buf-config }}"
+          exit 1
+        fi
+        if [ ! -f "${{ inputs.buf-gen-config }}" ]; then
+          echo "Error: buf.gen.yaml not found at ${{ inputs.buf-gen-config }}"
+          exit 1
+        fi
+
+    - name: Run buf lint
+      if: inputs.run-lint == 'true'
+      shell: bash
+      run: |
+        buf lint --config ${{ inputs.buf-config }}
+
+    - name: Check breaking changes
+      if: inputs.run-breaking == 'true'
+      shell: bash
+      run: |
+        buf breaking --against ".git#branch=${{ inputs.against-branch }}" --config ${{ inputs.buf-config }} || true
+
+    - name: Generate code
+      id: generate
+      if: inputs.generate-sdks == 'true'
+      shell: bash
+      run: |
+        # Create output directory
+        mkdir -p ${{ inputs.output-dir }}
+
+        # Generate code
+        buf generate --config ${{ inputs.buf-gen-config }}
+
+        # Output results
+        echo "languages=${{ inputs.sdk-languages }}" >> $GITHUB_OUTPUT
+        echo "path=${{ inputs.output-dir }}" >> $GITHUB_OUTPUT
+
+    - name: Create SDK tags
+      if: inputs.create-tags == 'true' && github.ref_type == 'tag'
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        BASE_TAG="${GITHUB_REF#refs/tags/}"
+        IFS=',' read -ra LANGS <<< "${{ inputs.sdk-languages }}"
+
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        for lang in "${LANGS[@]}"; do
+          SDK_TAG="${{ inputs.tag-prefix }}/${lang}/${BASE_TAG}"
+          git tag -a "$SDK_TAG" -m "Protocol Buffer SDK release for ${lang}: ${BASE_TAG}"
+          git push origin "$SDK_TAG"
+          echo "Created tag: $SDK_TAG"
+        done
+
+    - name: Output summary
+      shell: bash
+      run: |
+        echo "## Protocol Buffer Release Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Proto Directory:** ${{ inputs.proto-dir }}" >> $GITHUB_STEP_SUMMARY
+        echo "**SDK Languages:** ${{ inputs.sdk-languages }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Output Directory:** ${{ inputs.output-dir }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Buf Version:** ${{ inputs.buf-version }}" >> $GITHUB_STEP_SUMMARY

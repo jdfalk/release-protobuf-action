@@ -1,0 +1,88 @@
+# file: .github/workflows/ci.yml
+# version: 1.0.0
+# guid: a3b4c5d6-e7f8-9012-a678-123456789012
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate action.yml
+        run: |
+          if [ ! -f action.yml ]; then
+            echo "Error: action.yml not found"
+            exit 1
+          fi
+          echo "✅ action.yml validation passed"
+
+  test:
+    name: Test Action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Buf
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create test proto project
+        run: |
+          mkdir -p test-project/proto
+          cat > test-project/buf.yaml << 'EOF'
+          version: v1
+          name: buf.build/test/project
+          breaking:
+            use:
+              - FILE
+          lint:
+            use:
+              - DEFAULT
+          EOF
+
+          cat > test-project/proto/test.proto << 'EOF'
+          syntax = "proto3";
+
+          package test.v1;
+
+          message TestMessage {
+            string id = 1;
+            string name = 2;
+          }
+          EOF
+
+      - name: Test action execution
+        uses: ./
+        with:
+          version: "1.0.0-test"
+          project-path: "./test-project"
+          upload-artifacts: "false"
+          dry-run: "true"
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run yamllint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: action.yml
