@@ -14,7 +14,7 @@
 - buf-setup-action is working correctly
 - No immediate fixes required
 
-**Log File:** `/Users/jdfalk/repos/github.com/jdfalk/ghcommon/logs/ci-failures/release-protobuf-action_20251218_231444.log`
+**Log File:** `../ghcommon/logs/ci-failures/release-protobuf-action_20251218_231444.log`
 
 ---
 
