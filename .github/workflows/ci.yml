@@ -72,12 +72,12 @@ jobs:
       - name: Test action execution
         uses: ./
         with:
-          buf-version: "latest"
-          proto-dir: "./test-project/proto"
-          buf-config: "./test-project/buf.yaml"
-          generate-sdks: "false"
-          run-lint: "true"
-          run-breaking: "false"
+          buf-version: 'latest'
+          proto-dir: './test-project/proto'
+          buf-config: './test-project/buf.yaml'
+          generate-sdks: 'false'
+          run-lint: 'true'
+          run-breaking: 'false'
 
   lint:
     name: Lint
