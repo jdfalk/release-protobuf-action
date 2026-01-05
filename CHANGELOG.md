@@ -14,7 +14,9 @@ and this project adheres to
 
 ### Added
 
-- Initial release of release-protobuf-action
+- Dockerized execution path controlled by `use-docker`/`docker-image`
+- Automated GHCR publish workflow with digest pinning and tag bump
+- README updated with docker usage and inputs/outputs tables
 
 ### Changed
 
